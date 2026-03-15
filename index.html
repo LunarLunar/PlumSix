@@ -2,53 +2,223 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>梅花心易 - 靈動六爻系統 (修正版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>梅花心易 - 靈動六爻系統 (手機版)</title>
     <style>
-        body { background: #0a0a0a; color: #e0e0e0; font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding-top: 30px; overflow-y: auto; }
-        #divine-zone { width: 280px; height: 280px; border: 2px solid #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; cursor: crosshair; background: radial-gradient(circle, #1a1a1a 0%, #050505 100%); margin-bottom: 20px; transition: border-color 0.5s; }
-        #divine-zone.active-border { border-color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.2); }
-        #pointer { width: 15px; height: 15px; background: #ffffff; border-radius: 50%; position: absolute; box-shadow: 0 0 10px #ffffff; z-index: 10; transition: background-color 0.5s, width 0.3s, height 0.3s; }
-        
-        #status { font-size: 1rem; color: #888; text-align: center; height: 2em; margin-bottom: 15px; padding: 0 20px; }
-        
+        :root {
+            --primary: #00ffcc;
+            --accent: #ffeb3b;
+            --danger: #ff4444;
+            --bg: #050505;
+            --card-bg: rgba(22, 22, 22, 0.9);
+        }
+
+        body { 
+            background: var(--bg); 
+            color: #e0e0e0; 
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 20px 0;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* 背景流動光影 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050505 100%);
+            z-index: -1;
+        }
+
+        /* 起卦區域：變大並適應手機 */
+        #divine-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        #divine-zone { 
+            width: 300px; 
+            height: 300px; 
+            border: 2px solid #333; 
+            border-radius: 50%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            cursor: crosshair; 
+            background: radial-gradient(circle, #111 0%, #000 100%); 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        #divine-zone.active-border { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* 發光環：即使手指擋住中間，外圈依然可見 */
+        .glow-ring {
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            pointer-events: none;
+            transition: all 0.5s;
+            z-index: 1;
+        }
+
+        #divine-zone.active-border + .glow-ring {
+            border-color: rgba(0, 255, 204, 0.5);
+            box-shadow: inset 0 0 50px rgba(0, 255, 204, 0.2), 0 0 50px rgba(0, 255, 204, 0.2);
+            animation: ringPulse 2s infinite ease-in-out;
+        }
+
+        @keyframes ringPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* 干擾圖形圖層 */
+        #interference-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+        }
+
+        .noise-circle {
+            position: absolute;
+            border-radius: 50%;
+            mix-blend-mode: screen;
+            filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        #divine-zone.active-border .noise-circle {
+            opacity: 0.6;
+        }
+
+        #pointer { 
+            width: 20px; 
+            height: 20px; 
+            background: #fff; 
+            border-radius: 50%; 
+            position: absolute; 
+            box-shadow: 0 0 15px #fff; 
+            z-index: 10; 
+            transition: background-color 0.5s, transform 0.1s; 
+        }
+
+        #status { 
+            font-size: 1.1rem; 
+            color: #aaa; 
+            text-align: center; 
+            height: 2.5em; 
+            margin-bottom: 20px; 
+            padding: 0 30px; 
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
         /* 六爻顯示 */
-        #yao-container { display: flex; flex-direction: column-reverse; gap: 6px; margin-bottom: 25px; }
-        .yao-line { width: 140px; height: 10px; display: flex; justify-content: space-between; align-items: center; opacity: 0.15; transition: all 0.5s; }
-        .yao-line.active { opacity: 1; transform: scale(1.05); }
-        .yang { width: 100%; height: 100%; background: #00ffcc; box-shadow: 0 0 12px rgba(0,255,204,0.6); border-radius: 2px; }
-        .yin { width: 46%; height: 100%; background: #ff4444; box-shadow: 0 0 12px rgba(255,68,68,0.6); border-radius: 2px; }
-        
+        #yao-container { 
+            display: flex; 
+            flex-direction: column-reverse; 
+            gap: 10px; 
+            margin-bottom: 30px; 
+        }
+        .yao-line { 
+            width: 180px; 
+            height: 12px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            opacity: 0.1; 
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1); 
+        }
+        .yao-line.active { opacity: 1; transform: scale(1.1); }
+        .yang { width: 100%; height: 100%; background: var(--primary); box-shadow: 0 0 15px rgba(0,255,204,0.7); border-radius: 3px; }
+        .yin { width: 45%; height: 100%; background: var(--danger); box-shadow: 0 0 15px rgba(255,68,68,0.7); border-radius: 3px; }
+
         /* 最終解釋區 */
-        #result-area { width: 90%; max-width: 650px; padding: 30px; background: #161616; border-radius: 12px; border-top: 4px solid #00ffcc; display: none; margin-bottom: 60px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); animation: fadeIn 0.8s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .gua-header { text-align: center; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-        .gua-proverb { font-size: 3rem; font-weight: 900; color: #ffeb3b; margin: 0; letter-spacing: 8px; text-shadow: 0 0 20px rgba(255,235,59,0.4); }
-        .gua-title { font-size: 1.4rem; color: #00ffcc; margin-top: 10px; letter-spacing: 2px; }
-        
-        .gua-literature { background: #222; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; position: relative; }
-        .gua-story { color: #aaa; font-size: 1rem; line-height: 1.6; margin-bottom: 15px; display: block; }
-        .gua-poem { color: #a0c0d0; font-size: 1.2rem; font-style: italic; white-space: pre-line; line-height: 1.8; letter-spacing: 2px; }
-        
-        .gua-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .gua-section { background: #1f1f1f; padding: 15px; border-radius: 6px; }
-        .gua-section h3 { color: #00ffcc; font-size: 1rem; margin: 0 0 8px 0; border-left: 3px solid #00ffcc; padding-left: 8px; }
-        .gua-section p { color: #bbb; font-size: 0.9rem; margin: 0; line-height: 1.5; }
-        .full-width { grid-column: span 2; }
-        
-        .controls { display: flex; gap: 15px; margin-bottom: 30px; }
-        .btn { padding: 12px 24px; background: #2a2a2a; color: #fff; border: 1px solid #444; cursor: pointer; border-radius: 6px; font-weight: bold; transition: all 0.3s; }
-        .btn:hover { background: #3a3a3a; border-color: #666; }
-        #quick-test-btn { display: none; background: #4a148c; border-color: #7b1fa2; }
+        #result-area { 
+            width: 92%; 
+            max-width: 600px; 
+            padding: 25px; 
+            background: var(--card-bg); 
+            border-radius: 20px; 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--primary); 
+            display: none; 
+            margin-bottom: 80px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.9); 
+            animation: slideUp 0.8s ease-out; 
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+
+        .gua-header { text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px; }
+        .gua-proverb { font-size: 2.5rem; font-weight: 900; color: var(--accent); margin: 0; letter-spacing: 5px; text-shadow: 0 0 25px rgba(255,235,59,0.5); }
+        .gua-title { font-size: 1.5rem; color: var(--primary); margin-top: 12px; letter-spacing: 3px; }
+
+        .gua-literature { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
+        .gua-story { color: #888; font-size: 0.95rem; line-height: 1.6; margin-bottom: 15px; display: block; }
+        .gua-poem { color: #a0c0d0; font-size: 1.15rem; font-style: italic; white-space: pre-line; line-height: 1.8; letter-spacing: 1px; }
+
+        .gua-grid { display: flex; flex-direction: column; gap: 15px; }
+        .gua-section { background: rgba(255,255,255,0.05); padding: 18px; border-radius: 12px; }
+        .gua-section h3 { color: var(--primary); font-size: 1.1rem; margin: 0 0 10px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
+        .gua-section p { color: #ccc; font-size: 0.95rem; margin: 0; line-height: 1.6; }
+
+        .controls { display: flex; gap: 15px; margin-bottom: 40px; }
+        .btn { 
+            padding: 14px 28px; 
+            background: rgba(255,255,255,0.08); 
+            color: #fff; 
+            border: 1px solid rgba(255,255,255,0.2); 
+            cursor: pointer; 
+            border-radius: 12px; 
+            font-weight: bold; 
+            transition: all 0.3s; 
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+        .btn:active { transform: scale(0.95); background: rgba(255,255,255,0.15); }
+        #quick-test-btn { display: none; background: rgba(74, 20, 140, 0.4); border-color: #7b1fa2; }
+
+        /* 適應極小手機 */
+        @media (max-width: 350px) {
+            #divine-container, #divine-zone { width: 280px; height: 280px; }
+            .glow-ring { width: 310px; height: 310px; }
+            .gua-proverb { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="divine-zone">
-        <div id="pointer"></div>
+    <div id="divine-container">
+        <div id="divine-zone">
+            <div id="interference-layer"></div>
+            <div id="pointer"></div>
+        </div>
+        <div class="glow-ring"></div>
     </div>
 
-    <div id="status">請將滑鼠移至中心並按住左鍵，開始誠心起卦...</div>
+    <div id="status">請按住中心點，凝神聚氣起卦...</div>
 
     <div id="yao-container">
         <div class="yao-line" id="yao-6"></div>
@@ -60,7 +230,7 @@
     </div>
 
     <div class="controls">
-        <button class="btn" id="quick-test-btn" onclick="quickTest()">快速生成模式</button>
+        <button class="btn" id="quick-test-btn" onclick="quickTest()">快速測試</button>
         <button class="btn" onclick="resetAll()">重新起卦</button>
     </div>
 
@@ -76,7 +246,7 @@
         </div>
 
         <div class="gua-grid">
-            <div class="gua-section full-width">
+            <div class="gua-section">
                 <h3>總體運勢</h3>
                 <p id="gua-overall">--</p>
             </div>
@@ -92,7 +262,6 @@
     </div>
 
     <script>
-        // 資料庫補完計畫：依照 00-77 結構建立
         const guaDatabase = {
             "00": {"name":"坤為地","proverb":"厚德載物","story":"象徵大地的包容與承載，萬物皆由此生，適合守成與靜待。","poem":"地道無疆厚且深，柔順利往見其心。\n君子當修寬大德，含章可貞吉無侵。","overall":"目前運勢平穩，宜採被動姿態，跟隨領導者或順應情勢。不要強出頭，以柔克剛方能化險為夷。","career":"事業利於後勤支援或服務性質，穩紮穩打可得財益。","health":"注意脾胃與消化系統，女性需防婦科寒症。"},
             "01": {"name":"山地剝","proverb":"高牆傾頹","story":"牆角受蝕，危樓將傾。此卦象徵小人道長，君子道消，事物正處於剝落崩解邊緣。","poem":"山高地厚勢將崩，陰長陽消百事停。\n靜守待時莫強進，殘冬過後見清明。","overall":"運勢衰微，不宜進行任何變動或擴張。此時應隱遁避禍，保存僅存的果實。","career":"事業受阻，財運低迷。防範部屬背叛或外部打壓，切勿投資。","health":"注意皮膚病、骨骼痠痛或老疾復發。"},
@@ -117,47 +286,47 @@
             "24": {"name":"雷水解","proverb":"冰消瓦解","story":"春雷響起，冬雪融化。象徵災難結束，壓力得到釋放。應把握時間回歸正常軌道。","poem":"雷鳴雨過困難消，解脫憂煩路轉遙。\n利往西南尋舊友，從茲否極泰來朝。","overall":"轉機降臨。之前的阻礙正逐漸消失。此時應盡快處理過去積壓的問題，不可拖延。","career":"事業重獲生機，適合尋找合作夥伴。財運好轉，有意外之財進入。","health":"久病者有痊癒之象，注意調理氣血與運動。"},
             "25": {"name":"火水未濟","proverb":"黎明之前","story":"小狐狸渡河快到岸邊卻弄濕尾巴。象徵事情尚未完成，充滿變數，需謹慎收尾。","poem":"事未成就莫輕心，前路漫漫細搜尋。\n慎終如始方為吉，否極泰來福滿門。","overall":"運勢不穩，處於轉折點。雖然曙光在前，但最容易在最後一刻出錯。","career":"事業接近成功但仍有變數。財運起伏，宜守住成果，防範功虧一簣。","health":"注意水火不容導致的心腎不交、失眠或焦慮。"},
             "26": {"name":"澤水困","proverb":"坐困愁城","story":"澤中無水，魚被困在泥沼。象徵陷入絕境，言語無人相信，需靠意志力支撐。","poem":"澤中無水困英雄，言語難通事事空。\n處困守正心不改，終見陽光透霧中。","overall":"極凶。身處困境且缺乏援助。此時多說無益，應以行動證明自己，靜待脫困之時。","career":"財運窘迫，事業受阻。宜修身養性，不宜進行任何金錢上的冒險。","health":"注意貧血、營養不良或因志氣消沉導致的體力衰弱。"},
-            "27": {"name":"天水訟","proverb":"息事寧人","story":"天與水背道而行，象徵意見不合引發爭端。訴訟與爭鬥終究是凶事，宜見好就收。","poem":"天高水冷志難和，爭鬥終歸受折磨。\n中途止訟方為吉，強爭到底禍延多。","overall":"運勢極差，充滿紛爭。不論道理在誰那邊，爭吵都會帶來損耗。建議尋求調解，不可固執己見。","career":"職場有是非，謹防官司糾紛。財運受損，恐有賠償或法律支出的花費。","health":"注意因生氣引發的高血壓、失眠或心臟負擔。"},
+            "27": {"name":"天水訟","proverb":"息事寧人","story":"天與水背道而行，象徵意見不合引發爭端。訴訟與爭鬥終究是凶事，宜見好就收。","poem":"天高水冷志難和，爭鬥終歸受折磨。\n中途止訟方為吉，強爭到底禍延多。","overall":"運勢極差，充滿紛爭。不論道理在誰那邊，爭吵都會帶來損耗。建議尋求調解，不可固執見。","career":"職場有是非，謹防官司糾紛。財運受損，恐有賠償或法律支出的花費。","health":"注意因生氣引發的高血壓、失眠或心臟負擔。"},
             "30": {"name":"地風升","proverb":"步步高升","story":"木生於地中，由小破土而出，逐漸成長為大樹。象徵仕途或事業順遂，有長輩提拔。","poem":"木生地下向天伸，積小成大貴人親。\n志在高峰莫遲疑，前程萬里正逢春。","overall":"吉。運勢正旺，適合向上發展或推行新計畫。應把握機會拜見貴人或主管，必有收穫。","career":"升遷有望，利於求職、考試。財運隨地位提升而增長。","health":"大致良好，但需注意肝膽與脾胃的調和。"},
-            "31": {"name":"山風蠱","proverb":"推陳出新","story":"山下有風，空氣不流通導致器皿生蟲。象徵內部腐敗或積弊已久，必須大膽革新。","poem":"腐敗已成須整頓，先甲後甲用心勤。\n剷除積弊重開路，撥亂反正見功勳。","overall":"凶帶轉機。目前處於混亂狀態，切勿坐視不管。必須面對現實，針對問題根源進行徹底改革。","career":"事業面臨整頓，財運不佳，恐有內部虧空或人事糾紛。","health":"注意腸胃疾病、寄生蟲感擾或慢性毒素堆積。"},
+            "31": {"name":"山風蠱","proverb":"推陳出新","story":"山下有風，空氣不流通導致器皿生蟲。象徵內部腐敗或積弊已久，必須大膽革新。","poem":"腐敗已成須整頓，先甲後甲用心勤。\n剷除積弊重開路，撥亂反正見功勳.","overall":"凶帶轉機。目前處於混亂狀態，切勿坐視不管。必須面對現實，針對問題根源進行徹底改革。","career":"事業面臨整頓，財運不佳，恐有內部虧空或人事糾紛。","health":"注意腸胃疾病、寄生蟲感擾或慢性毒素堆積。"},
             "32": {"name":"水風井","proverb":"源遠流長","story":"井水長流不息，養活眾人，但井道需時常疏通。象徵資源穩定，但需注重維護與修養。","poem":"改邑不改井源長，勞而有功潤四方。\n誠心守分無遷改，甘泉自到福綿長。","overall":"平穩。目前環境穩定，不宜輕易變動居所或事業方向。只要持之以恆，必能獲得應有的報酬。","career":"適合守業或內勤工作。財運平順，但需防範最後一刻的疏忽（瓶墜井中）。","health":"注意泌尿系統、心臟與水份調節。"},
-            "33": {"name":"巽為風","proverb":"隨風而入","story":"兩風相隨，象徵謙遜與順從。風無孔不入，代表溝通能力強，能透過柔性手段達成目的。","poem":"柔風徐來影無蹤，進退維谷志難從。\n利見大人求指引，謙卑順應必亨通。","overall":"小吉。運勢平順，但容易優柔寡斷。此時適合聽取專家建議，以柔克剛，不宜強出頭。","career":"利於文職、公關或貿易。財運隨著名氣而來，適合長線布局。","health":"注意風濕、神經系統或氣喘等症。"},
+            "33": {"name":"巽為風","proverb":"隨風而入","story":"兩風相隨，象徵謙遜與順從。風無孔不入，代表溝通能力強，能透過柔性手段達成目的。","poem":"柔風徐來影無蹤，進退維谷志難從。\n利見大人求指引，謙卑順應必亨通.","overall":"小吉。運勢平順，但容易優柔寡斷。此時適合聽取專家建議，以柔克剛，不宜強出頭。","career":"利於文職、公關或貿易。財運隨著名氣而來，適合長線布局。","health":"注意風濕、神經系統或氣喘等症。"},
             "34": {"name":"雷風恒","proverb":"持之以恆","story":"雷動風隨，象徵長久不變的法則。這是一首和諧的樂章，提醒人們在變動中守住初心。","poem":"天長地久月常明，守道安常萬事興。\n莫為風雲輕變志，恆心不改必有成。","overall":"吉。利於維持現狀，婚姻與合作關係皆穩固。不宜朝令夕改，否則會喪失信用與運氣。","career":"事業穩定發展，適合守舊。財運中平，偏向正財。","health":"注意肝腎氣虛或因生活習慣不規律導致的慢性病。"},
-            "35": {"name":"火風鼎","proverb":"三足鼎立","story":"木上有火，象徵烹飪與祭祀。鼎是權力與穩定的象徵，代表去舊布新，正位凝命。","poem":"鼎爐火旺氣象新，三足穩健貴人親。\n改弦更張謀大利，富貴榮華慶此身。","overall":"大吉。運勢正值鼎盛，利於創業、遷居或轉換跑道。能得到各方資源的支持，事半功倍。","career":"有升遷之喜，能掌握實權。財運極佳，投資有大獲利的機會。","health":"注意消化系統火氣大，或因過度應酬影響健康。"},
+            "35": {"name":"火風鼎","proverb":"三足鼎立","story":"木上有火，象徵烹飪與祭祀。鼎是權力與穩定的象徵，代表去舊布新，正位凝命。","poem":"鼎爐火旺氣象新，三足穩健貴人親。\n改弦更張謀大利，富貴榮華慶此身.","overall":"大吉。運勢正值鼎盛，利於創業、遷居或轉換跑道。能得到各方資源的支持，事半功倍。","career":"有升遷之喜，能掌握實權。財運極佳，投資有大獲利的機會。","health":"注意消化系統火氣大，或因過度應酬影響健康。"},
             "36": {"name":"澤風大過","proverb":"棟樑饒曲","story":"澤水淹沒樹木，樑柱因負荷過重而彎曲。象徵壓力達到極限，需非常手段才能解救。","poem":"樑柱微彎勢危疑，重擔壓肩心力疲。\n非常之時行非常，獨立不懼自可期。","overall":"凶帶險。當前處境極度艱難，壓力巨大。不宜再增加負擔，應果斷減壓或尋求根本解決之道。","career":"事業面臨重大轉折或倒閉危機。財運極差，需防資金鏈斷裂。","health":"注意脊椎、骨骼問題或因壓力導致的崩潰。"},
             "37": {"name":"天風姤","proverb":"不期而遇","story":"天下有風，象徵女性強勢或小人暗長。此卦警示「女壯勿用」，需防範意外的誘惑或潛伏的危機。","poem":"天下有風遇偶然，女強男弱事難圓。\n謹防暗箭生肘腋，莫因貪戀誤前緣。","overall":"中平偏凶。會有突如其來的機會或相遇，但多半不長久或帶有副作用。行事應謹慎，勿被表面利益迷惑。","career":"防範部屬爭權或意外的人事變動。財運反覆，小心桃色糾紛破財。","health":"注意呼吸系統、傳染病或因情緒起伏導致的不適。"},
             "40": {"name":"地雷復","proverb":"一陽來復","story":"地底雷動，象徵冬至過後陽氣回升。代表萬物復甦，是重新開始、走回正軌的好時機。","poem":"地心雷動見天心，回首前塵莫沉淪。\n正道回歸行大道，春回大地氣象新。","overall":"吉。過去的陰霾正逐漸散去，運勢開始翻轉。適合修復關係、重啟計畫或回歸原本的專業領域。","career":"失而復得，求職有轉機。財運緩步回升，適合小額長期投資。","health":"病後復原期，注意保暖與充足體力，防範舊疾復發。"},
-            "41": {"name":"山雷頤","proverb":"自求口實","story":"山下有雷，象徵兩腮活動。代表養生之道，除了食物的營養，也包含言行與思想的修養。","poem":"兩腮頤動求生存，禍從口出福在門。\n慎言節食修心性，平安度日莫怨論。","overall":"平。運勢中等，目前應注重自我充實與身心健康。行事需注意言論，避免禍從口出，凡事量力而為。","career":"適合餐飲、醫療、教育或文化事業。財運平平，偏向勞務所得。","health":"注意口腔、牙齒、腸胃及飲食衛生。"},
+            "41": {"name":"山雷頤","proverb":"自求口實","story":"山下有雷，象徵兩腮活動。代表養生之道，除了食物的營養，也包含言行與思想的修養。","poem":"兩腮頤動求生存，禍從口出福在門。\n慎言節食修心性，平安度日莫怨論.","overall":"平。運勢中等，目前應注重自我充實與身心健康。行事需注意言論，避免禍從口出，凡事量力而為。","career":"適合餐飲、醫療、教育或文化事業。財運平平，偏向勞務所得。","health":"注意口腔、牙齒、腸胃及飲食衛生。"},
             "42": {"name":"水雷屯","proverb":"萬事起頭難","story":"雲雷交作，種子破土前的艱辛。象徵初生時的混亂與阻礙，雖有困難但充滿生命力。","poem":"草木破土冒尖芽，困頓之時莫亂爬。\n利建侯王尋助引，耐心等待自開花。","overall":"險中帶吉。目前環境惡劣，計畫剛起步困難重重。不宜躁進，應先建立基礎並尋求貴人協助（利建侯）。","career":"創業初期倍感艱辛，財運不穩。職場上應保持耐性，累積實力。","health":"注意循環系統、泌尿疾病或胎兒健康（若有孕）。"},
             "43": {"name":"風雷益","proverb":"損上益下","story":"風動雷響，兩者互相助長。象徵獲利、增加與施捨。這是一個利於冒險與大舉前進的時機。","poem":"風雷交加勢更強，益人利己見吉光。\n利涉大川求進取，時來運轉必輝煌。","overall":"大吉。運勢極旺，適合進行重大投資、長途旅行或婚嫁。此時若能回饋社會，福報會更加深厚。","career":"事業大發，有跨國或跨領域的機會。財運亨通，正財偏財皆旺。","health":"健康良好，精神煥發，但需防範過度興奮導致的失眠。"},
-            "44": {"name":"震為雷","proverb":"震驚百里","story":"雷聲連續響起，象徵變動與震驚。雖令人恐懼，但只要心中有主見，便能臨危不亂。","poem":"震雷驚天動地鳴，惶恐過後見昇平。\n處變不驚守本位，笑談之間事已成。","overall":"中吉。會遇到突如其來的變故或消息，初期可能受驚，但最終是虛驚一場。保持冷靜是成功的關鍵。","career":"職場有大變動，如組織重整。財運起伏大，適合短線操作。","health":"注意神經衰弱、耳鳴、心悸或肝火動。"},
+            "44": {"name":"震為雷","proverb":"震驚百里","story":"雷聲連續響起，象徵變動與震驚。雖令人恐懼，但只要心中有主見，便能臨危不亂。","poem":"震雷驚天動地鳴，惶恐過後見昇平。\n處變不驚守本位，笑談之間事已成.","overall":"中吉。會遇到突如其來的變故或消息，初期可能受驚，但最終是虛驚一場。保持冷靜是成功的關鍵。","career":"職場有大變動，如組織重整。財運起伏大，適合短線操作。","health":"注意神經衰弱、耳鳴、心悸或肝火動。"},
             "45": {"name":"火雷噬嗑","proverb":"咬碎障礙","story":"上下顎咬合，中間有物阻礙。象徵必須排除阻礙才能達成目的。法律與刑罰是必要的手段。","poem":"口中阻礙必清除，剛強果斷路自舒。\n明察秋毫行公道，撥雲見日莫躊躇。","overall":"中吉。目前面臨人事紛爭或利益衝突，必須果斷採取強硬措施，不能姑息。利於打官司或解決糾紛。","career":"事業有競爭對手，需主動出擊。財運正旺，但需防範被小人侵占利益。","health":"注意口腔疾病、咽喉炎或因焦躁引發的發燒。"},
             "46": {"name":"澤雷隨","proverb":"隨遇而安","story":"澤中有雷，象徵陽氣隨陰而動。代表應時而變，順應潮流。君子應隨大勢而動，不可固執己見。","poem":"雷入澤中隨時休，適應環境莫強求。\n順天應人行好事，心寬路廣自無憂。","overall":"吉。目前適合放下己見，跟隨強大的領導者或主流趨勢。廣納雅言，人際關係將帶動運勢。","career":"適合合夥、仲介或流行產業。財運隨人脈而來，不宜孤注一擲。","health":"注意腿部勞損、飲食不調或因隨波逐流導致的生活作息混亂。"},
-            "47": {"name":"天雷無妄","proverb":"天下雷行","story":"天雷陣陣，萬物不敢妄動。象徵凡事應遵循自然天理，不可有非分之想或妄為。","poem":"天下雷行莫妄動，誠信待人道自通。\n意外之災多因妄，安分守己見真功。","overall":"中平偏凶。此卦主「意外」。若能循規蹈矩則吉；若心存僥倖或妄動，則會招致無妄之災。不宜進行大額投資。","career":"職場應謹守本分，防範意外的錯誤或指責。財運平平，防範意外破財。","health":"注意突發性疾病、意外碰撞或頭部傷損。"},
-            "50": {"name":"地火明夷","proverb":"明入地中","story":"太陽沒入地平線下，黑暗降臨。君子應韜光養晦，藏鋒於內以避禍。","poem":"光明受損入深淵，隱姓埋名度危年。\n內心清明守正道，靜待晨曦照大川。","overall":"凶。處境險惡，才華受忌。不宜展露頭角，凡事應低調避難，保護自己為上。","career":"職場有小人當道，宜隱忍。財運低迷，防範受騙或財產受損。","health":"注意眼睛疾、心火鬱結或意外血光。"},
-            "51": {"name":"火地晉","proverb":"旭日東升","story":"太陽從地面升起，象徵晉升、進步與獲得賞賜，是事業發達之兆。","poem":"日出東方照九州，光明大道任君遊。\n才華展露人稱羨，進德修業報豐收。","overall":"大吉。運勢極佳，求名求利皆有收穫。能獲得長輩或主管的提拔，應把握機會。","career":"升職機會大，考運佳。投資者可加碼，獲利空間顯著。","health":"健康良好，但需防視力受損或心火過旺。"},
-            "52": {"name":"火山旅","proverb":"客路崎嶇","story":"山頭火燃，火勢隨風而行而不留。象徵旅行、漂泊、暫時的居所。","poem":"山頭火燃不安居，客路崎嶇志難舒。\n謙柔守正方為吉，莫在異鄉結冤仇。","overall":"平。主變動，不宜久留一處。身處異地應低調保守，避免與當地人衝突。","career":"適合差旅、外派或開發海外市場。財運不穩，流動性高。","health":"注意腸胃火氣、旅途疲勞引發的體力支撐不足。"},
-            "54": {"name":"火水未濟","proverb":"黎明之前","story":"水火不相容，象徵混亂尚未平定。雖然快要成功，但仍需謹慎收尾。","poem":"水火未交事未成，臨門一腳需精誠。\n耐守終能迎好運，操之過急必受驚。","overall":"中平。處於變動的末期，黎明就在眼前。此時最忌諱鬆懈，必須堅持到最後一刻。","career":"事業轉型期，有新機會出現。財運先難後易。","health":"注意心腎不交、失眠、或是冷熱交替引發的感冒。"},
-            "57": {"name":"天火同人","proverb":"志同道合","story":"火向天燃燒，象徵光明與大同。與人和睦相處，團結眾人之力可成大事。","poem":"天火光明志相同，群英匯聚立奇功。\n廣開言路結良友，四海之內皆亨通。","overall":"大吉。人際關係極佳，利於結盟、合夥或社交活動。只要大公無私，事情必能成功。","career":"利於團隊創業或集體合作。財運旺盛，能得朋友相助獲利。","health":"體質強健，但需防範呼吸系統燥熱。"},
-            "60": {"name":"澤地萃","proverb":"群英會聚","story":"水匯聚於大地上。象徵人才與資源的集合。利於與長輩會面或大型集會。","poem":"澤潤大地聚精英，誠心祭祀感神明。\n群策群力成大事，富貴榮華慶太平。","overall":"吉。利於團隊整合或募資。現在是凝聚共識的好時機，人多力量大。","career":"適合合夥經營，能與同業形成競爭力。財運來自人脈與平台。","health":"注意下半身水腫或消化系統負擔。"},
-            "61": {"name":"澤山咸","proverb":"心心相印","story":"柔上剛下，象徵男女感應、情感交流。這是一種真誠的吸引力。","poem":"山澤感應氣相通，男女情深志亦同。\n誠信交孚無邪念，所求如意自亨通。","overall":"吉。直覺敏銳，能與他人產生共鳴。適合進行溝通談判或追求感情。","career":"適合從事公關、行銷。財運伴隨良好的人脈而來。","health":"注意心血管及血液循環，保持情緒平穩。"},
-            "62": {"name":"水澤節","proverb":"節制有度","story":"水在澤上，若不節制則外溢，若太節制則枯竭。象徵制度與節約的重要性。","poem":"澤水盈滿須節制，不求奢華守規儀。\n適度節省為美德，過度吝嗇事難期。","overall":"平。運勢穩定但受限。此時應守住規矩，不宜過度開支或擴張。節制是保平安之道。","career":"事業發展受預算限制，宜開源節流。財運中平。","health":"注意水分代謝、腎臟系統或因飲食不節引發的疾病。"},
-            "65": {"name":"火澤睽","proverb":"二心不同","story":"火向上炎，澤水向下流，志向背道而馳。象徵意見分岐、孤立無援。","poem":"火炎水降志難同，反目成仇事事空。\n異中求同方為吉，莫在紛爭糾纏中。","overall":"凶。當前人事不合，計畫推動受阻。不宜強行達成共識，應保持距離，尋求小事的和諧。","career":"職場有內鬥，合作夥伴可能拆夥。財運受阻，小心文書失誤。","health":"注意眼疾、火氣大或神經性胃痛。"},
-            "67": {"name":"天澤履","proverb":"如履薄冰","story":"跟在老虎尾巴後面走。象徵處境危險，必須極度謹慎、守禮，方能化險為夷。","poem":"履虎尾時心戰兢，柔順應對保前程。\n謙恭守禮無災禍，終得平安萬事輕。","overall":"險中帶吉。當前處境敏感，面對強勢者需小心應對。只要態度誠懇、守規矩，就不會有災難。","career":"職場壓力大，需應付挑剔的主管。財運宜守不宜攻。","health":"注意心理壓力過大導致的官能症或足部受傷。"},
-            "70": {"name":"地天泰","proverb":"如魚得水","story":"天地交泰，萬物和諧。象徵內外安適，是極為吉祥的卦象。","poem":"陰陽交泰萬物生，和氣滿堂福自迎。\n莫謂春光容易老，好風憑藉步青雲。","overall":"萬事如意，大吉之象。內外和諧，計畫多能順利達成。","career":"團隊默契十足，投資獲利預期良好，升職加薪可待。","health":"氣血充盈，康健平安。唯須注意過度應酬導致的負擔。"},
-            "73": {"name":"風天小畜","proverb":"密雲不雨","story":"天空佈滿雲朵卻不下雨。象徵力量尚微，只能小有蓄積，不宜大舉進攻。","poem":"密雲不雨空期待，蓄勢待時莫躁開。\n小有成就須珍惜，大業仍需耐性培。","overall":"中平。時機尚未成熟，雖然有進展但有限。目前適合整理內部，累積小錢與經驗。","career":"事業發展緩慢，適合小額投資。財運小吉，大財難求。","health":"注意呼吸系統、胸悶或因等待引發的焦慮。"},
-            "74": {"name":"雷天大壯","proverb":"羝羊觸藩","story":"雷在天上，響聲巨大。象徵力量強大，但若過度衝動就像公羊撞籬笆，會困住自己。","poem":"雷行天上勢剛強，莫恃英雄露鋒芒。\n守正持中無毀敗，若行霸道必遭殃。","overall":"吉。運勢強盛，充滿動力。但要防止行為過激或太過自信，凡事適可而止方能長久。","career":"事業蒸蒸日上，利於開拓。財運頗佳，但需防範法律風險。","health":"體力過剩，注意防範碰撞外傷或血壓升高。"},
-            "75": {"name":"火天大有","proverb":"如日中天","story":"太陽高掛天空，照耀萬物。象徵大獲收穫、富有與豐盛。","poem":"火在天上照大同，富貴榮華在其中。\n順天應人行好事，福祿雙全永不窮。","overall":"大吉。運勢極旺，正是收成的季節。應保持謙虛，多行善事以保長久富貴。","career":"事業有大成就，財源廣進。利於大型投資或創業。","health":"氣色極佳，但需防範眼壓過高或頭部火氣。"},
-            "76": {"name":"澤天夬","proverb":"果斷決裂","story":"澤水上升於天。象徵決堤或果斷的決策。必須除去最後的一點陰霾，勇敢前進。","poem":"澤水上升勢欲盈，決斷果敢莫留情。\n消除奸邪行正路，陽光普照見昇平。","overall":"中平。現在面臨重大決策點，必須拿出勇氣去斷捨離。行事要公開透明，不可暗中操盤。","career":"適合進行人事整頓或結束虧損。財運有大變動，需果斷獲利了結。","health":"注意呼吸道、肺部問題及因情緒緊繃導致的意外。"},
-            "77": {"name":"乾為天","proverb":"飛龍在天","story":"如真龍躍於雲端，萬眾仰望。象徵極盛之運。","poem":"剛健中正氣凌雲，自強不息建殊勳。\n潛龍勿用時機待，一旦騰空驚世人。","overall":"運勢處於巔峰，充滿動能。但行事必須保持正道，不可驕傲自滿。","career":"適合創業、升遷，能獲長輩賞識，正財運極強。","health":"注意頭部疲勞、高血壓或心血管問題。"}
+            "47": {"name":"天雷無妄","proverb":"天下雷行","story":"天雷陣陣，萬物不敢妄動。象徵凡事應遵循自然天理，不可有非分之想或妄為。","poem":"天下雷行莫妄動，誠信待人道自通。\n意外之災多因妄，安分守己見真功.","overall":"中平偏凶。此卦主「意外」。若能循規蹈矩則吉；若心存僥倖或妄動，則會招致無妄之災。不宜進行大額投資。","career":"職場應謹守本分，防範意外的錯誤或指責。財運平平，防範意外破財。","health":"注意突發性疾病、意外碰撞或頭部傷損。"},
+            "50": {"name":"地火明夷","proverb":"明入地中","story":"太陽沒入地平線下，黑暗降臨。君子應韜光養晦，藏鋒於內以避禍。","poem":"光明受損入深淵，隱姓埋名度危年。\n內心清明守正道，靜待晨曦照大川.","overall":"凶。處境險惡，才華受忌。不宜展露頭角，凡事應低調避難，保護自己為上。","career":"職場有小人當道，宜隱忍。財運低迷，防範受騙或財產受損。","health":"注意眼睛疾、心火鬱結或意外血光。"},
+            "51": {"name":"火地晉","proverb":"旭日東升","story":"太陽從地面升起，象徵晉升、進步與獲得賞賜，是事業發達之兆。","poem":"日出東方照九州，光明大道任君遊。\n才華展露人稱羨，進德修業報豐收.","overall":"大吉。運勢極佳，求名求利皆有收穫。能獲得長輩或主管的提拔，應把握機會。","career":"升職機會大，考運佳。投資者可加碼，獲利空間顯著。","health":"健康良好，但需防視力受損或心火過旺。"},
+            "52": {"name":"火山旅","proverb":"客路崎嶇","story":"山頭火燃，火勢隨風而行而不留。象徵旅行、漂泊、暫時的居所。","poem":"山頭火燃不安居，客路崎嶇志難舒。\n謙柔守正方為吉，莫在異鄉結冤仇.","overall":"平。主變動，不宜久留一處。身處異地應低調保守，避免與當地人衝突。","career":"適合差旅、外派 or 開發海外市場。財運不穩，流動性高。","health":"注意腸胃火氣、旅途疲勞引發的體力支撐不足。"},
+            "54": {"name":"火水未濟","proverb":"黎明之前","story":"水火不相容，象徵混亂尚未平定。雖然快要成功，但仍需謹慎收尾。","poem":"水火未交事未成，臨門一腳需精誠。\n耐守終能迎好運，操之過急必受驚。","overall":"中平. 處於變動的末期，黎明就在眼前。此時最忌諱鬆懈，必須堅持到最後一刻。","career":"事業轉型期，有新機會出現。財運先難後易。","health":"注意心腎不交、失眠、或是冷熱交替引發的感冒。"},
+            "57": {"name":"天火同人","proverb":"志同道合","story":"火向天燃燒，象徵光明與大同。與人和睦相處，團結眾人之力可成大事。","poem":"天火光明志相同，群英匯聚立奇功。\n廣開言路結良友，四海之內皆亨通.","overall":"大吉。人際關係極佳，利於結盟、合夥或社交活動。只要大公無私，事情必能成功。","career":"利於團隊創業或集體合作。財運旺盛，能得朋友相助獲利。","health":"體質強健，但需防範呼吸系統燥熱。"},
+            "60": {"name":"澤地萃","proverb":"群英會聚","story":"水匯聚於大地上。象徵人才與資源的集合。利於與長輩會面或大型集會。","poem":"澤潤大地聚精英，誠心祭祀感神明。\n群策群力成大事，富貴榮華慶太平.","overall":"吉。利於團隊整合或募資。現在是凝聚共識的好時機，人多力量大。","career":"適合合夥經營，能與同業形成競爭力。財運來自人脈與平台。","health":"注意下半身水腫或消化系統負擔。"},
+            "61": {"name":"澤山咸","proverb":"心心相印","story":"柔上剛下，象徵男女感應、情感交流。這是一種真誠的吸引力。","poem":"山澤感應氣相通，男女情深志亦同。\n誠信交孚無邪念，所求如意自亨通.","overall":"吉。直覺敏銳，能與他人產生共鳴。適合進行溝通談判或追求感情。","career":"適合從事公關、行銷。財運伴隨良好的人脈而來。","health":"注意心血管及血液循環，保持情緒平穩。"},
+            "62": {"name":"水澤節","proverb":"節制有度","story":"水在澤上，若不節制則外溢，若太節制則枯竭。象徵制度與節約的重要性。","poem":"澤水盈滿須節制，不求奢華守規儀。\n適度節省為美德，過度吝嗇事難期.","overall":"平。運勢穩定但受限。此時應守住規矩，不宜過度開支或擴張。節制是保平安之道。","career":"事業發展受預算限制，宜開源節流。財運中平。","health":"注意水分代謝、腎臟系統或因飲食不節引發的疾病。"},
+            "65": {"name":"火澤睽","proverb":"二心不同","story":"火向上炎，澤水向下流，志向背道而馳。象徵意見分岐、孤立無援。","poem":"火炎水降志難同，反目成仇事事空。\n異中求同方為吉，莫在紛爭糾纏中.","overall":"凶。當前人事不合，計畫推動受阻。不宜強行達成共識，應保持距離，尋求小事的和諧。","career":"職場有內鬥，合作夥伴可能拆夥。財運受阻，小心文書失誤。","health":"注意眼疾、火氣大或神經性胃痛。"},
+            "67": {"name":"天澤履","proverb":"如履薄冰","story":"跟在老虎尾巴後面走。象徵處境危險，必須極度謹慎、守禮，方能化險為夷。","poem":"履虎尾時心戰兢，柔順應對保前程。\n謙恭守禮無災禍，終得平安萬事輕.","overall":"險中帶吉。當前處境敏感，面對強勢者需小心應對。只要態度誠誠、守規矩，就不會有災難。","career":"職場壓力大，需應付挑剔的主管。財運宜守不宜攻。","health":"注意心理壓力過大導致的官能症或足部受傷。"},
+            "70": {"name":"地天泰","proverb":"如魚得水","story":"天地交泰，萬物和諧。象徵內外安適，是極為吉祥的卦象。","poem":"陰陽交泰萬物生，和氣滿堂福自迎。\n莫謂春光容易老，好風憑藉步青雲.","overall":"萬事如意，大吉之象。內外和諧，計畫多能順利達成。","career":"團隊默契十足，投資獲利預期良好，升職加薪可待。","health":"氣血充盈，康健平安。唯須注意過度應酬導致的負擔。"},
+            "73": {"name":"風天小畜","proverb":"密雲不雨","story":"天空佈滿雲朵卻不下雨。象徵力量尚微，只能小有蓄積，不宜大舉進攻。","poem":"密雲不雨空期待，蓄勢待時莫躁開。\n小有成就須珍惜，大業仍需耐性培.","overall":"中平. 時機尚未成熟，雖然有進展但有限。目前適合整理內部，累積小錢與經驗。","career":"事業發展緩慢，適合小額投資。財運小吉，大財難求。","health":"注意呼吸系統、胸悶或因等待引發的焦慮。"},
+            "74": {"name":"雷天大壯","proverb":"羝羊觸藩","story":"雷在天上，響聲巨大。象徵力量強大，但若過度衝動就像公羊撞籬笆，會困住自己。","poem":"雷行天上勢剛強，莫恃英雄露鋒芒。\n守正持中無毀敗，若行霸道必遭殃.","overall":"吉. 運勢強盛，充滿動力。但要防止行為過激或太過自信，凡事適可而止方能長久。","career":"事業蒸蒸日上，利於開拓。財運頗佳，但需防範法律風險。","health":"體力過剩，注意防範碰撞外傷或血壓升高。"},
+            "75": {"name":"火天大有","proverb":"如日中天","story":"太陽高掛天空，照耀萬物。象徵大獲收穫、富有與豐盛。","poem":"火在天上照大同，富貴榮華在其中。\n順天應人行好事，福祿雙全永不窮.","overall":"大吉. 運勢極旺，正是收成的季節。應保持謙虛，多行善事以保長久富貴。","career":"事業有大成就，財源廣進。利於大型投資或創業。","health":"氣色極佳，但需防範眼壓過高或頭部火氣。"},
+            "76": {"name":"澤天夬","proverb":"果斷決裂","story":"澤水上升於天。象徵決堤或果斷的決策。必須除去最後的一點陰霾，勇敢前進。","poem":"澤水上升勢欲盈，決斷果敢莫留情。\n消除奸邪行正路，陽光普照見昇平.","overall":"中平. 現在面臨重大決策點，必須拿出勇氣去斷捨離。行事要公開透明，不可暗中操盤。","career":"適合進行人事整頓或結束虧損。財運有大變動，需果斷獲利了結。","health":"注意呼吸道、肺部問題及因情緒緊繃導致的意外。"},
+            "77": {"name":"乾為天","proverb":"飛龍在天","story":"如真龍躍於雲端，萬眾仰望。象徵極盛之運。","poem":"剛健中正氣凌雲，自強不息建殊勳。\n潛龍勿用時機待，一旦騰空驚世人.","overall":"運勢處於巔峰，充滿動能。但行事必須保持正道，不可驕傲自滿。","career":"適合創業、升遷，能獲長輩賞識，正財運極強。","health":"注意頭部疲勞、高血壓或心血管問題。"}
         };
 
         const defaultGua = { 
-            name: "未知卦象結果不可能", proverb: "數理之外", story: "此卦象在數學邏輯上不可能自然發生（例如數字包含8或9），為防呆之預設結果。", 
-            poem: "天地生數本有常，\n陰陽消長演八方。\n此象本非機率內，\n測試玄機露端倪。", 
-            overall: "此結果在數學上不可能自然發生，多出一個預設的結果顯示不可能發生，乃防呆及測試之提醒。", 
-            career: "無此結果。此為系統預設之不可能發生結果。", 
-            health: "無此結果。此為系統預設之不可能發生結果。"
+            name: "未知卦象", proverb: "數理之外", story: "此卦象在數學邏輯上不穩定，為系統預設之結果。", 
+            poem: "天地生數本有常，\n陰陽消長演八方。\n誠心再卜解玄機，\n定見清明透曙光。", 
+            overall: "目前資訊尚待沉澱，建議稍事休息後再次感應。", 
+            career: "無此結果。建議謹守本分。", 
+            health: "無此結果。注意休息。"
         };
 
         const zone = document.getElementById('divine-zone');
@@ -165,66 +334,99 @@
         const status = document.getElementById('status');
         const resultArea = document.getElementById('result-area');
         const testBtn = document.getElementById('quick-test-btn');
+        const interference = document.getElementById('interference-layer');
         
         let isDivine = false;
-        let isFinished = false; // 鎖死開關
+        let isFinished = false;
         let divineTimer = null;
         let effectInterval = null;
+        let updateInterval = null;
         let currentYaoIndex = 1; 
         let yaoResults = []; 
-
-        // 彩蛋：點擊畫面 8 次解鎖快速測試
         let clickCount = 0;
-        document.addEventListener('click', (e) => {
+
+        // 初始化干擾圖形
+        function initInterference() {
+            interference.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const circle = document.createElement('div');
+                circle.className = 'noise-circle';
+                const size = Math.random() * 60 + 20;
+                circle.style.width = size + 'px';
+                circle.style.height = size + 'px';
+                resetCircle(circle);
+                interference.appendChild(circle);
+            }
+        }
+
+        function resetCircle(el) {
+            const colors = ['#00ffcc', '#ffeb3b', '#ff4444', '#4a148c', '#03a9f4'];
+            el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            el.style.left = Math.random() * 100 + '%';
+            el.style.top = Math.random() * 100 + '%';
+            el.dataset.vx = (Math.random() - 0.5) * 4;
+            el.dataset.vy = (Math.random() - 0.5) * 4;
+        }
+
+        function animateInterference() {
+            if (!isDivine) return;
+            const circles = document.querySelectorAll('.noise-circle');
+            circles.forEach(el => {
+                let x = parseFloat(el.style.left);
+                let y = parseFloat(el.style.top);
+                let vx = parseFloat(el.dataset.vx);
+                let vy = parseFloat(el.dataset.vy);
+
+                x += vx;
+                y += vy;
+
+                if (x < 0 || x > 100) el.dataset.vx = -vx;
+                if (y < 0 || y > 100) el.dataset.vy = -vy;
+
+                el.style.left = x + '%';
+                el.style.top = y + '%';
+            });
+        }
+
+        initInterference();
+
+        // 彩蛋解鎖
+        document.addEventListener('touchstart', (e) => {
             if (e.target.tagName === 'BUTTON') return;
             clickCount++;
             if (clickCount >= 8) testBtn.style.display = 'block';
         });
 
-        // 特效邏輯
-        function applyEffect() {
-            if (!isDivine) return;
-            const dx = (Math.random() - 0.5) * 10;
-            const dy = (Math.random() - 0.5) * 10;
-            const sz = Math.floor(Math.random() * 10) + 12;
-            const h = Math.floor(Math.random() * 360);
-            pointer.style.backgroundColor = `hsl(${h}, 80%, 60%)`;
-            pointer.style.boxShadow = `0 0 20px hsl(${h}, 80%, 60%)`;
-            pointer.style.width = sz + 'px';
-            pointer.style.height = sz + 'px';
-            pointer.style.transform = `translate(${dx}px, ${dy}px)`;
-        }
-
-        zone.addEventListener('mousedown', (e) => {
-            if (isFinished || currentYaoIndex > 6) return; // 鎖死檢查
+        // 開始起卦
+        function startDivine() {
+            if (isFinished || currentYaoIndex > 6 || isDivine) return;
             isDivine = true;
             zone.classList.add('active-border');
-            status.innerText = `[ 第 ${currentYaoIndex} 爻 ] 凝神聚氣中...`;
+            status.innerText = `[ 第 ${currentYaoIndex} 爻 ] 正在感天動地...`;
             
-            effectInterval = setInterval(applyEffect, 1200);
+            // 特效更新節奏
+            effectInterval = setInterval(() => {
+                const h = Math.floor(Math.random() * 360);
+                const s = Math.random() * 10 + 20;
+                pointer.style.backgroundColor = `hsl(${h}, 90%, 70%)`;
+                pointer.style.boxShadow = `0 0 25px hsl(${h}, 90%, 70%)`;
+                pointer.style.transform = `translate(${(Math.random()-0.5)*15}px, ${(Math.random()-0.5)*15}px) scale(${1 + Math.random()*0.3})`;
+            }, 100);
+
+            updateInterval = setInterval(animateInterference, 30);
             
-            // 隨機秒數 2~5秒
-            const delay = Math.floor(Math.random() * 3000) + 2000;
+            const delay = Math.floor(Math.random() * 2500) + 1500;
             divineTimer = setTimeout(generateYao, delay);
-        });
+        }
 
-        zone.addEventListener('mousemove', (e) => {
-            if (!isDivine) return;
-            const rect = zone.getBoundingClientRect();
-            const x = e.clientX - rect.left - 140;
-            const y = e.clientY - rect.top - 140;
-            if (Math.abs(x) > 20 || Math.abs(y) > 20) { // 寬容度微調至 20
-                failDivine("心神飄移，請重新按住中心點");
-            }
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDivine) failDivine("功虧一簣，起卦需持之以恆");
-        });
+        function endDivine() {
+            if (isDivine) failDivine("心誠則靈，請持之以功不要中斷");
+        }
 
         function failDivine(msg) {
             isDivine = false;
             clearInterval(effectInterval);
+            clearInterval(updateInterval);
             clearTimeout(divineTimer);
             zone.classList.remove('active-border');
             pointer.style.cssText = '';
@@ -234,6 +436,7 @@
         function generateYao() {
             isDivine = false;
             clearInterval(effectInterval);
+            clearInterval(updateInterval);
             zone.classList.remove('active-border');
             pointer.style.cssText = '';
             
@@ -245,26 +448,43 @@
             el.innerHTML = val === 1 ? '<div class="yang"></div>' : '<div class="yin"></div><div class="yin"></div>';
             
             if (currentYaoIndex === 6) {
-                isFinished = true; // 正式鎖死輸入
-                status.innerText = "六爻定象，天機已現。";
-                setTimeout(showFinalResult, 1000);
+                isFinished = true;
+                status.innerText = "六爻定象，正在開啟天機...";
+                setTimeout(showFinalResult, 1200);
             } else {
                 currentYaoIndex++;
-                status.innerText = "一爻已成，請繼續按住起下一爻";
+                status.innerText = `第 ${currentYaoIndex-1} 爻完成，請繼續起下一爻`;
             }
         }
 
+        // 事件監聽：滑鼠與觸控同步
+        zone.addEventListener('mousedown', (e) => { e.preventDefault(); startDivine(); });
+        zone.addEventListener('touchstart', (e) => { e.preventDefault(); startDivine(); });
+        window.addEventListener('mouseup', endDivine);
+        window.addEventListener('touchend', endDivine);
+
+        // 寬容移動監聽
+        const checkPos = (x, y) => {
+            const rect = zone.getBoundingClientRect();
+            const cx = x - rect.left - rect.width/2;
+            const cy = y - rect.top - rect.height/2;
+            // 增加寬容度至 130px 半徑
+            if (Math.sqrt(cx*cx + cy*cy) > 130) {
+                failDivine("手指偏離法陣中心，感應中斷");
+            }
+        };
+
+        zone.addEventListener('mousemove', (e) => { if(isDivine) checkPos(e.clientX, e.clientY); });
+        zone.addEventListener('touchmove', (e) => { if(isDivine) checkPos(e.touches[0].clientX, e.touches[0].clientY); });
+
         function showFinalResult() {
-            // 修正 NaN 邏輯：確保取到的是字串
             const low = yaoResults.slice(0, 3).reverse().join('');
             const up = yaoResults.slice(3, 6).reverse().join('');
-            
-            // 轉化為 0-7 的字串 ID
             const upId = parseInt(up, 2).toString();
             const lowId = parseInt(low, 2).toString();
             const fullId = upId + lowId;
 
-            const data = guaDatabase[fullId] || { ...defaultGua, name: `第 ${fullId} 卦` };
+            const data = guaDatabase[fullId] || { ...defaultGua, name: `靈動卦象 ${fullId}` };
             
             document.getElementById('gua-proverb').innerText = data.proverb;
             document.getElementById('gua-name').innerText = `【 ${data.name} 】`;
@@ -274,6 +494,7 @@
             document.getElementById('gua-career').innerText = data.career;
             document.getElementById('gua-health').innerText = data.health;
             
+            status.innerText = "天機已現，請參閱下方解卦";
             resultArea.style.display = 'block';
             resultArea.scrollIntoView({ behavior: 'smooth' });
         }
@@ -284,8 +505,9 @@
             currentYaoIndex = 1;
             yaoResults = [];
             clickCount = 0;
-            status.innerText = "請將滑鼠移至中心並按住左鍵，開始誠心起卦...";
+            status.innerText = "請按住中心點，凝神聚氣起卦...";
             resultArea.style.display = 'none';
+            document.querySelectorAll('.noise-circle').forEach(c => c.style.opacity = '0');
             document.querySelectorAll('.yao-line').forEach(l => {
                 l.classList.remove('active');
                 l.innerHTML = '';
