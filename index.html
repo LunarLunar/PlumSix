@@ -184,6 +184,43 @@
         .gua-section h3 { color: var(--primary); font-size: 1.1rem; margin: 0 0 10px 0; border-left: 4px solid var(--primary); padding-left: 10px; }
         .gua-section p { color: #ccc; font-size: 0.95rem; margin: 0; line-height: 1.6; }
 
+        #biangua-area {
+            margin-top: 25px; padding: 20px;
+            background: rgba(255,235,59,0.05);
+            border-radius: 14px;
+            border: 1px solid rgba(255,235,59,0.3);
+        }
+        #biangua-area h3 {
+            color: #ffeb3b; font-size: 1.1rem; margin: 0 0 15px 0;
+            border-left: 4px solid #ffeb3b; padding-left: 10px; letter-spacing: 2px;
+        }
+        .bg-row {
+            display: flex; align-items: flex-start; gap: 12px;
+            margin-bottom: 10px; padding: 10px;
+            background: rgba(0,0,0,0.2); border-radius: 8px;
+        }
+        .bg-label { color: #ffeb3b; font-size: 0.85rem; font-weight: bold; white-space: nowrap; min-width: 55px; padding-top: 2px; }
+        .bg-content { color: #ccc; font-size: 0.93rem; line-height: 1.65; }
+        .bg-guaname { color: #00ffcc; font-weight: bold; font-size: 1.05rem; line-height: 1.65; }
+        /* 變卦區塊 */
+        #biangua-area {
+            margin-top: 25px; padding: 20px;
+            background: rgba(255,235,59,0.05);
+            border-radius: 14px;
+            border: 1px solid rgba(255,235,59,0.3);
+        }
+        #biangua-area h3 {
+            color: #ffeb3b; font-size: 1.1rem; margin: 0 0 15px 0;
+            border-left: 4px solid #ffeb3b; padding-left: 10px; letter-spacing: 2px;
+        }
+        .bg-row {
+            display: flex; align-items: flex-start; gap: 12px;
+            margin-bottom: 10px; padding: 10px;
+            background: rgba(0,0,0,0.2); border-radius: 8px;
+        }
+        .bg-label { color: #ffeb3b; font-size: 0.85rem; font-weight: bold; white-space: nowrap; min-width: 55px; padding-top: 2px; }
+        .bg-content { color: #ccc; font-size: 0.93rem; line-height: 1.65; }
+        .bg-guaname { color: #00ffcc; font-weight: bold; font-size: 1.05rem; line-height: 1.65; }
         .controls { display: flex; gap: 15px; margin-bottom: 40px; }
         .btn { 
             padding: 14px 28px; 
@@ -261,6 +298,15 @@
         </div>
     </div>
 
+
+        <div id="biangua-area">
+            <h3>&#9775; 變卦 &middot; 動爻指引 &#9775;</h3>
+            <div class="bg-row"><span class="bg-label">動爻位</span><span class="bg-content">第 <strong id="bg-yao-num" style="color:#ffeb3b;font-size:1.1em">?</strong> 爻動（梅花易數上下卦數法）</span></div>
+            <div class="bg-row"><span class="bg-label">動爻性</span><span class="bg-content" id="bg-yao-type">--</span></div>
+            <div class="bg-row"><span class="bg-label">變卦名</span><span class="bg-guaname" id="bg-name">--</span></div>
+            <div class="bg-row"><span class="bg-label">趨勢解</span><span class="bg-content" id="bg-trend">--</span></div>
+        </div>
+    </div>
     <script>
         const guaDatabase = {
             "00": {"name":"坤為地","proverb":"厚德載物","story":"象徵大地的包容與承載，萬物皆由此生，適合守成與靜待。","poem":"地道無疆厚且深，柔順利往見其心。\n君子當修寬大德，含章可貞吉無侵。","overall":"目前運勢平穩，宜採被動姿態，跟隨領導者或順應情勢。不要強出頭，以柔克剛方能化險為夷。","career":"事業利於後勤支援或服務性質，穩紮穩打可得財益。","health":"注意脾胃與消化系統，女性需防婦科寒症。"},
@@ -318,7 +364,7 @@
             "74": {"name":"雷天大壯","proverb":"羝羊觸藩","story":"雷在天上，響聲巨大。象徵力量強大，但若過度衝動就像公羊撞籬笆，會困住自己。","poem":"雷行天上勢剛強，莫恃英雄露鋒芒。\n守正持中無毀敗，若行霸道必遭殃.","overall":"吉. 運勢強盛，充滿動力。但要防止行為過激或太過自信，凡事適可而止方能長久。","career":"事業蒸蒸日上，利於開拓。財運頗佳，但需防範法律風險。","health":"體力過剩，注意防範碰撞外傷或血壓升高。"},
             "75": {"name":"火天大有","proverb":"如日中天","story":"太陽高掛天空，照耀萬物。象徵大獲收穫、富有與豐盛。","poem":"火在天上照大同，富貴榮華在其中。\n順天應人行好事，福祿雙全永不窮.","overall":"大吉. 運勢極旺，正是收成的季節。應保持謙虛，多行善事以保長久富貴。","career":"事業有大成就，財源廣進。利於大型投資或創業。","health":"氣色極佳，但需防範眼壓過高或頭部火氣。"},
             "76": {"name":"澤天夬","proverb":"果斷決裂","story":"澤水上升於天。象徵決堤或果斷的決策。必須除去最後的一點陰霾，勇敢前進。","poem":"澤水上升勢欲盈，決斷果敢莫留情。\n消除奸邪行正路，陽光普照見昇平.","overall":"中平. 現在面臨重大決策點，必須拿出勇氣去斷捨離。行事要公開透明，不可暗中操盤。","career":"適合進行人事整頓或結束虧損。財運有大變動，需果斷獲利了結。","health":"注意呼吸道、肺部問題及因情緒緊繃導致的意外。"},
-            "77": {"name":"乾為天","proverb":"飛龍在天","story":"如真龍躍於雲端，萬眾仰望。象徵極盛之運。","poem":"剛健中正氣凌雲，自強不息建殊勳。\n潛龍勿用時機待，一旦騰空驚世人.","overall":"運勢處於巔峰，充滿動能。但行事必須保持正道，不可驕傲自滿。","career":"適合創業、升遷，能獲長輩賞識，正財運極強。","health":"注意頭部疲勞、高血壓或心血管問題。"}
+            "77": {"name":"乾為天","proverb":"飛龍在天","story":"如真龍躍於雲端，萬眾仰望。象徵極盛之運。","poem":"剛健中正氣凌雲，自強不息建殊勳。\n潛龍勿用時機待，一旦騰空驚世人.","overall":"運勢處於巔峰，充滿動能。但行事必須保持正道，不可驕傲自滿。","career":"適合創業、升遷，能獲長輩賞識，正財運極強。","health":"注意頭部疲勞、高血壓或心血管問題。"},"53":{"name":"風火家人","proverb":"齊家治國","story":"巽風撫育離火，象徵家庭的規矩與和諧。家規嚴謹，齊家方能治國平天下。","poem":"家道綿長在一心，分工守位各安身。\n女主中饋男主外，和諧相處萬事新。","overall":"吉。家庭與團隊內部的和諧是現在的重點。以身作則，嚴守本分，家業方能興旺。","career":"適合家族企業或需長期信任的合作。財運穩定，靠内部資源積累。","health":"注意婦科問題或因家事操勞導致的神經緊張。"},"55":{"name":"離為火","proverb":"光明正大","story":"兩火相疊，光焰熾盛。象徵文明、美麗與附麗，需依附正道方能持久燃燒。","poem":"雙火炎炎照四方，文明光耀映天光。\n附麗正道長吉祥，驕奢之火終會涼。","overall":"中吉。運勢明亮，才華容易展現，但切勿過度炫耀。必須依附正確原則，否則火焰燃盡則暗。","career":"適合藝術、傳播、教育事業。財運明顯，但開銷也大，需控制支出。","health":"注意心臟、眼睛或因過度勞神導致的虛火。"},"56":{"name":"澤火革","proverb":"革故鼎新","story":"澤水滅火，一切被革除淘汰。象徵重大變革，舊制度必須打破，新秩序方能建立。","poem":"澤滅舊火革命時，去腐生新莫遲疑。\n己日乃孚民信服，大人虎變世人知。","overall":"大吉。革新的時機已到，必須果斷地變革舊有的制度或生活方式，得人心者勝。","career":"有大型組織變革或行業變動，財運在變動中能抓住大機會。","health":"注意內分泌失調、情緒波動或因大壓力導致的急性症狀。"},"63":{"name":"風澤中孚","proverb":"誠信致遠","story":"澤上有風，象徵言語傳播，誠信深入人心。真誠無私的感化力量能化解一切難題。","poem":"風吹澤上信孚中，誠心待物感天功。\n豚魚之信化水木，守正無私萬眾同。","overall":"吉。誠信是現在最大的武器。只要言行一致，必能感化他人，獲得信任與支持。","career":"適合談判、外交、公關。財運因誠信而積累，長期利潤豐厚。","health":"注意精神過於緊繃或因思慮過重導致的心理壓力。"},"64":{"name":"雷澤歸妹","proverb":"歸宿有時","story":"少女隨長男歸嫁，象徵事物回歸其本位。此卦主動中有靜，行事需辨明時機與本分。","poem":"歸妹以姐從弟行，禮儀守正嫁隨從。\n動靜相宜知進退，順時而動方無凶。","overall":"中平偏凶。行事衝動或名不正言不順，易有後悔之事。婚姻感情方面需謹慎，不宜草率。","career":"職場有被動的變化，宜謹守本分。財運平平，防範情感糾紛帶來的破財。","health":"注意婦科問題、情緒不穩或因衝動造成的傷害。"},"66":{"name":"兌為澤","proverb":"和悅說服","story":"兩澤相連，象徵喜悅、交流與溝通。兌卦代表言語的力量，樂觀和悅能開創局面。","poem":"雙澤相連喜氣揚，口才善辯展鋒芒。\n悅己悅人皆有道，朋友之助倍吉祥。","overall":"吉。人緣極佳，善於溝通，能以言語才智打動他人。適合社交、演說或談判的時機。","career":"適合業務、主播、講師等口才相關事業。財運靠溝通與人脈而來。","health":"注意口腔疾患、肺氣不足或因過度言語導致的損耗。"},"71":{"name":"山天大畜","proverb":"厚積薄發","story":"高山屹立於天下，象徵大量積累才德。止而不動，靜待時機，積聚的力量終將大放異彩。","poem":"天入山中止而蓄，大德大才需積厚。\n日進月益循不輟，不家食吉展鴻圖。","overall":"大吉之象。目前不宜躁動，應持續學習與積累資本、人脈。待時機一到，必能大展身手。","career":"適合研究、進修或蓄勢待發之人。財運因積累而豐，但暫時不顯。","health":"注意骨骼、脊椎或因過度壓抑導致的慢性損耗。"},"72":{"name":"水天需","proverb":"等待時機","story":"水雲聚於天上，象徵雨水即將降臨。需要等待的藝術，時機未至則靜守，時機一至則大行。","poem":"雲上天中需以待，飲食宴樂保和諧。\n誠信守位終得濟，貴人貨船自然來。","overall":"吉。此時機緣尚未完全成熟，正確的做法是靜待，保持自身最佳狀態。急於求成只會搞砸事情。","career":"求職或合作機會即將到來，需耐心等待。財運在等待中蓄積，不久將有大收穫。","health":"注意水分失調、腎臟功能或因焦慮等待導致的緊張症。"}
         };
 
         const defaultGua = { 
@@ -494,6 +540,25 @@
             document.getElementById('gua-career').innerText = data.career;
             document.getElementById('gua-health').innerText = data.health;
             
+            // === 梅花易數 變卦計算 （動爻 = 上卦數 + 下卦數，取餘6）===
+            const upperNum = parseInt(up, 2) + 1;
+            const lowerNum = parseInt(low, 2) + 1;
+            let changingPos = (upperNum + lowerNum) % 6;
+            if (changingPos === 0) changingPos = 6;
+            const bianYao = [...yaoResults];
+            bianYao[changingPos - 1] = bianYao[changingPos - 1] === 1 ? 0 : 1;
+            const bianLow = bianYao.slice(0, 3).reverse().join('');
+            const bianUp  = bianYao.slice(3, 6).reverse().join('');
+            const bianId  = parseInt(bianUp, 2).toString() + parseInt(bianLow, 2).toString();
+            const bianData = guaDatabase[bianId] || { ...defaultGua, name: `靈動卦象 ${bianId}` };
+            const origYaoVal = yaoResults[changingPos - 1];
+            const yaoDesc = origYaoVal === 1
+                ? '陽爻（━━━）化為陰爻（━ ━），由剛轉柔，事態趨緩'
+                : '陰爻（━ ━）化為陽爻（━━━），由柔轉剛，事態趨強';
+            document.getElementById('bg-yao-num').innerText = changingPos;
+            document.getElementById('bg-yao-type').innerText = `第 ${changingPos} 爻：${yaoDesc}`;
+            document.getElementById('bg-name').innerText = `【 ${bianData.name} 】· ${bianData.proverb}`;
+            document.getElementById('bg-trend').innerText = bianData.overall;
             status.innerText = "天機已現，請參閱下方解卦";
             resultArea.style.display = 'block';
             resultArea.scrollIntoView({ behavior: 'smooth' });
@@ -506,6 +571,10 @@
             yaoResults = [];
             clickCount = 0;
             status.innerText = "請按住中心點，凝神聚氣起卦...";
+            document.getElementById('bg-yao-num').innerText = '?';
+            document.getElementById('bg-yao-type').innerText = '--';
+            document.getElementById('bg-name').innerText = '--';
+            document.getElementById('bg-trend').innerText = '--';
             resultArea.style.display = 'none';
             document.querySelectorAll('.noise-circle').forEach(c => c.style.opacity = '0');
             document.querySelectorAll('.yao-line').forEach(l => {
