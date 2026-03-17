@@ -526,9 +526,9 @@
         function showFinalResult() {
             const low = yaoResults.slice(0, 3).reverse().join('');
             const up = yaoResults.slice(3, 6).reverse().join('');
-            const upId = parseInt(up, 2).toString();
             const lowId = parseInt(low, 2).toString();
-            const fullId = upId + lowId;
+            const upId = parseInt(up, 2).toString();
+            const fullId = lowId + upId;
 
             const data = guaDatabase[fullId] || { ...defaultGua, name: `靈動卦象 ${fullId}` };
             
@@ -540,16 +540,23 @@
             document.getElementById('gua-career').innerText = data.career;
             document.getElementById('gua-health').innerText = data.health;
             
-            // === 梅花易數 變卦計算 （動爻 = 上卦數 + 下卦數，取餘6）===
-            const upperNum = parseInt(up, 2) + 1;
-            const lowerNum = parseInt(low, 2) + 1;
-            let changingPos = (upperNum + lowerNum) % 6;
+            // === 梅花易數 變卦計算 （動爻 = (上卦數 + 下卦數 + 時辰數) % 6）===
+            // 正統卦數：乾1, 兌2, 離3, 震4, 巽5, 坎6, 艮7, 坤8 (對應 8 - parseInt)
+            const upperNum = 8 - parseInt(up, 2);
+            const lowerNum = 8 - parseInt(low, 2);
+            
+            // 取得目前的時辰數 (子1, 丑2 ... 亥12)
+            const hour = new Date().getHours();
+            const hourNum = Math.floor(((hour + 1) % 24) / 2) + 1; 
+
+            let changingPos = (upperNum + lowerNum + hourNum) % 6;
             if (changingPos === 0) changingPos = 6;
+            
             const bianYao = [...yaoResults];
             bianYao[changingPos - 1] = bianYao[changingPos - 1] === 1 ? 0 : 1;
             const bianLow = bianYao.slice(0, 3).reverse().join('');
             const bianUp  = bianYao.slice(3, 6).reverse().join('');
-            const bianId  = parseInt(bianUp, 2).toString() + parseInt(bianLow, 2).toString();
+            const bianId  = parseInt(bianLow, 2).toString() + parseInt(bianUp, 2).toString();
             const bianData = guaDatabase[bianId] || { ...defaultGua, name: `靈動卦象 ${bianId}` };
             const origYaoVal = yaoResults[changingPos - 1];
             const yaoDesc = origYaoVal === 1
