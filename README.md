@@ -1,5 +1,8 @@
 # 梅花易數：數位靈動占卜系統 (Plum Blossom I-Ching Oracle)
 
+### [LIVE DEMO HERE](https://lunarlunar.github.io/PlumSix/index.html)
+
+
 > 「太極生兩儀，兩儀生四象，四象生八卦。」— 結合北宋邵雍天人合一思想與現代互動科技的數位命理實踐。
 
 ---
